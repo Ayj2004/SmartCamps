@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.kgc.mapper.UserMapper">
+    <insert id="addUser" parameterType="cn.kgc.pojo.User">
+        insert into tb_user(student_id,username,password,major,grade,email,phone,create_time,update_time)
+        values(#{studentId},#{username},#{password},#{major},#{grade},#{email},#{phone},now(),now())
+    </insert>
+    <select id="getUserByStudentId" resultType="cn.kgc.pojo.User">
+        select *
+        from tb_user
+        where student_id=${studentId}
+    </select>
+</mapper>

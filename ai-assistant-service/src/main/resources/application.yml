@@ -1,0 +1,12 @@
+server:
+  port: 8083
+spring:
+  ai:
+    openai:
+      base-url: https://api.deepseek.com
+      api-key: sk-4bd0f3d5192744f793d03eac12a299f4
+      chat:
+        options:
+          model: deepseek-chat
+          temperature: 0.7
+          max-tokens: 500

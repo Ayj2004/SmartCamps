@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: course-service
+  cloud:
+    nacos:
+      username: nacos
+      password: nacos
+      server-addr: 127.0.0.1:8848
+      grpc:
+        port: 9848
+      config:
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        shared-configs:
+          - data-id: common.yaml
+            group: DEFAULT_GROUP
+            refresh:  false
+        refresh-enabled: false
+
