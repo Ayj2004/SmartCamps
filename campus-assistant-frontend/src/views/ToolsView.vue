@@ -1,6 +1,6 @@
 <template>
   <div class="tools-view">
-    <!-- 新增：返回主页按钮 + 原页面头部（适配学习计划页样式） -->
+    <!-- 头部返回与标题区域 -->
     <div class="page-header">
       <el-page-header @back="goToHome">
         <template #title>
@@ -17,10 +17,11 @@
       </el-page-header>
     </div>
 
-    <!-- 主容器（参考学习计划页的plan-container布局） -->
+    <!-- 主容器 -->
     <div class="plan-container">
+      <!-- 外层容器：强制分为两行，每行3列 -->
       <main class="tools-grid">
-        <!-- 番茄钟 -->
+        <!-- 第一行：番茄钟、任务清单、学习时长 -->
         <section class="tool-card" shadow="hover">
           <h2>⏰ 番茄钟</h2>
           <p class="desc">专注学习 25 分钟，休息 5 分钟，提升效率</p>
@@ -40,7 +41,6 @@
           </div>
         </section>
 
-        <!-- 学习任务清单 -->
         <section class="tool-card" shadow="hover">
           <h2>📋 学习任务清单</h2>
           <p class="desc">记录今天要完成的学习任务，完成后打勾</p>
@@ -71,7 +71,6 @@
           </ul>
         </section>
 
-        <!-- 简易学习时长记录 -->
         <section class="tool-card" shadow="hover">
           <h2>📈 学习时长记录</h2>
           <p class="desc">简单记录今天各科的学习时间，了解自己的时间分配</p>
@@ -104,6 +103,117 @@
             今日累计学习时长：<strong>{{ totalMinutes }}</strong> 分钟
           </div>
         </section>
+
+        <!-- 第二行：AI翻译、AI计算、AI诗词 -->
+        <section class="tool-card" shadow="hover">
+          <h2>🌐 AI智能翻译</h2>
+          <p class="desc">多语言精准翻译，支持文本/专业术语翻译</p>
+          <div class="ai-translate">
+            <el-input
+              v-model="translateContent"
+              type="textarea"
+              placeholder="请输入需要翻译的内容（例如：专业术语/英文文献）"
+              :rows="3"
+              size="small"
+            />
+            <div class="translate-select" style="margin: 8px 0;">
+              <el-select
+                v-model="targetLang"
+                placeholder="选择目标语言"
+                size="small"
+                style="width: 100%;"
+              >
+                <el-option label="英语" value="英语" />
+                <el-option label="日语" value="日语" />
+                <el-option label="韩语" value="韩语" />
+                <el-option label="法语" value="法语" />
+                <el-option label="德语" value="德语" />
+              </el-select>
+            </div>
+            <el-button
+              @click="handleTranslate"
+              type="primary"
+              size="small"
+              :loading="translateLoading"
+            >
+              开始翻译
+            </el-button>
+            <div v-if="translateResult" class="translate-result">
+              {{ translateResult }}
+            </div>
+            <div v-if="translateError" class="translate-error">
+              {{ translateError }}
+            </div>
+          </div>
+        </section>
+
+        <section class="tool-card" shadow="hover">
+          <h2>🧮 AI智能计算</h2>
+          <p class="desc">解决数学/编程问题，提供详细解题步骤</p>
+          <div class="ai-calculator">
+            <el-input
+              v-model="calcProblem"
+              type="textarea"
+              placeholder="请输入数学/编程问题（例如：求1+2+...+100的和 / 冒泡排序代码实现）"
+              :rows="3"
+              size="small"
+              @keyup.enter="handleCalculate"
+            />
+            <el-button
+              @click="handleCalculate"
+              type="primary"
+              size="small"
+              :loading="calcLoading"
+              style="margin-top: 8px;"
+            >
+              解题计算
+            </el-button>
+            <div v-if="calcResult" class="calc-result">
+              {{ calcResult }}
+            </div>
+            <div v-if="calcError" class="calc-error">
+              {{ calcError }}
+            </div>
+          </div>
+        </section>
+
+        <section class="tool-card" shadow="hover">
+          <h2>📜 AI诗词创作</h2>
+          <p class="desc">根据主题创作不同类型的诗词作品</p>
+          <div class="ai-poetry">
+            <el-input
+              v-model="poetryTheme"
+              placeholder="请输入创作主题（例如：校园、青春、梦想）"
+              size="small"
+              style="margin-bottom: 8px;"
+            />
+            <el-select
+              v-model="poetryType"
+              placeholder="选择诗词类型"
+              size="small"
+              style="margin-bottom: 8px; width: 100%;"
+            >
+              <el-option label="五言绝句" value="五言绝句" />
+              <el-option label="七言律诗" value="七言律诗" />
+              <el-option label="现代诗" value="现代诗" />
+              <el-option label="宋词（蝶恋花）" value="宋词（蝶恋花）" />
+            </el-select>
+            <el-button
+              @click="handleCreatePoetry"
+              type="primary"
+              size="small"
+              :loading="poetryLoading"
+            >
+              创作诗词
+            </el-button>
+            <div v-if="poetryResult" class="poetry-result">
+              {{ poetryResult }}
+            </div>
+            <div v-if="poetryError" class="poetry-error">
+              {{ poetryError }}
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   </div>
@@ -113,16 +223,17 @@
 import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { Tools } from '@element-plus/icons-vue'
+import axios from 'axios'
 
-// 初始化路由（适配学习计划页的跳转逻辑）
+// 初始化路由
 const router = useRouter()
 
-// 新增：返回主页方法（统一学习计划页的跳转方式）
+// 返回首页方法
 const goToHome = () => {
-  router.back() // 和学习计划页保持一致的返回逻辑
+  router.back()
 }
 
-// 番茄钟：25 分钟专注 + 5 分钟休息（业务逻辑完全不变）
+// 番茄钟逻辑
 const FOCUS_DURATION = 25 * 60
 const BREAK_DURATION = 5 * 60
 
@@ -177,7 +288,7 @@ onBeforeUnmount(() => {
   }
 })
 
-// 学习任务清单（业务逻辑完全不变）
+// 学习任务清单逻辑
 const tasks = ref([
   { id: 1, title: '预习明天的专业课', done: false },
   { id: 2, title: '整理今天的课堂笔记', done: false }
@@ -199,7 +310,7 @@ const removeTask = (id) => {
   tasks.value = tasks.value.filter((t) => t.id !== id)
 }
 
-// 学习时长记录（业务逻辑完全不变）
+// 学习时长记录逻辑
 const studyLogs = ref([])
 const logSubject = ref('')
 const logMinutes = ref(null)
@@ -216,17 +327,103 @@ const addStudyLog = () => {
 const totalMinutes = computed(() =>
   studyLogs.value.reduce((sum, item) => sum + (item.minutes || 0), 0)
 )
+
+// ---------------- 新增：AI翻译相关 ----------------
+const translateContent = ref('')
+const targetLang = ref('')
+const translateResult = ref('')
+const translateError = ref('')
+const translateLoading = ref(false)
+
+const handleTranslate = async () => {
+  if (!translateContent.value.trim() || !targetLang.value) {
+    translateError.value = '请输入翻译内容并选择目标语言！'
+    return
+  }
+  translateLoading.value = true
+  translateError.value = ''
+  translateResult.value = ''
+  try {
+    const res = await axios.get('/api/ai/translate', {
+      params: {
+        content: translateContent.value.trim(),
+        targetLang: targetLang.value
+      }
+    })
+    translateResult.value = res.data
+  } catch (err) {
+    translateError.value = '翻译失败：' + (err.message || '服务器异常')
+  } finally {
+    translateLoading.value = false
+  }
+}
+
+// ---------------- 新增：AI计算机相关 ----------------
+const calcProblem = ref('')
+const calcResult = ref('')
+const calcError = ref('')
+const calcLoading = ref(false)
+
+const handleCalculate = async () => {
+  if (!calcProblem.value.trim()) {
+    calcError.value = '请输入需要解决的问题！'
+    return
+  }
+  calcLoading.value = true
+  calcError.value = ''
+  calcResult.value = ''
+  try {
+    const res = await axios.post('/api/ai/calculator', {
+      problem: calcProblem.value.trim()
+    })
+    calcResult.value = res.data
+  } catch (err) {
+    calcError.value = '解题失败：' + (err.message || '服务器异常')
+  } finally {
+    calcLoading.value = false
+  }
+}
+
+// ---------------- 新增：AI诗词创作相关 ----------------
+const poetryTheme = ref('')
+const poetryType = ref('')
+const poetryResult = ref('')
+const poetryError = ref('')
+const poetryLoading = ref(false)
+
+const handleCreatePoetry = async () => {
+  if (!poetryTheme.value.trim() || !poetryType.value) {
+    poetryError.value = '请输入创作主题并选择诗词类型！'
+    return
+  }
+  poetryLoading.value = true
+  poetryError.value = ''
+  poetryResult.value = ''
+  try {
+    const res = await axios.get('/api/ai/poetry', {
+      params: {
+        theme: poetryTheme.value.trim(),
+        type: poetryType.value
+      }
+    })
+    poetryResult.value = res.data
+  } catch (err) {
+    poetryError.value = '创作失败：' + (err.message || '服务器异常')
+  } finally {
+    poetryLoading.value = false
+  }
+}
 </script>
 
 <style scoped lang="scss">
-// 统一学习计划页的全局样式
+// 全局样式
 .tools-view {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); // 统一渐变背景
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
 }
 
-// 顶部导航（完全复用学习计划页样式）
+// 顶部导航
 .page-header {
   background: white;
   border-radius: 10px;
@@ -247,30 +444,39 @@ const totalMinutes = computed(() =>
   }
 }
 
-// 主容器（参考学习计划页的plan-container布局）
+// 主容器
 .plan-container {
   min-height: calc(100vh - 120px);
 
+  // 核心修改：强制网格为 2行3列 布局
   .tools-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(3, 1fr); // 固定3列
+    grid-template-rows: repeat(2, 1fr);    // 固定2行
     gap: 20px;
+    // 限制最大宽度，保证3列布局不拉伸
+    max-width: 1200px;
+    margin: 0 auto;
   }
 }
 
-// 工具卡片（适配学习计划页的卡片样式）
+// 工具卡片通用样式
 .tool-card {
-  background: rgba(255, 255, 255, 0.95); // 毛玻璃背景
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); // 兼容webkit
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 10px;
   padding: 18px 20px 20px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   transition: all 0.3s;
+  // 让卡片高度一致（可选，优化视觉）
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 
   &:hover {
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    transform: translateY(-5px); // 统一hover上浮效果
+    transform: translateY(-5px);
   }
 
   h2 {
@@ -287,11 +493,19 @@ const totalMinutes = computed(() =>
     font-size: 13px;
     color: #909399;
   }
+
+  // 内容区域自动填充，按钮/结果区域靠下
+  > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
 }
 
-// 番茄钟（样式适配，逻辑不变）
+// 番茄钟样式
 .pomodoro-timer {
   text-align: center;
+  flex: 1;
 
   .time-display {
     font-size: 36px;
@@ -319,7 +533,7 @@ const totalMinutes = computed(() =>
   }
 }
 
-// 任务清单（样式适配，逻辑不变）
+// 任务清单样式
 .task-input {
   display: flex;
   gap: 8px;
@@ -336,6 +550,7 @@ const totalMinutes = computed(() =>
   margin: 0;
   max-height: 200px;
   overflow-y: auto;
+  flex: 1;
 
   li {
     display: flex;
@@ -364,7 +579,7 @@ const totalMinutes = computed(() =>
   }
 }
 
-// 学习时长记录（样式适配，逻辑不变）
+// 学习时长记录样式
 .study-log-form {
   display: flex;
   gap: 8px;
@@ -382,6 +597,7 @@ const totalMinutes = computed(() =>
   max-height: 160px;
   overflow-y: auto;
   font-size: 13px;
+  flex: 1;
 
   li {
     display: flex;
@@ -412,10 +628,100 @@ const totalMinutes = computed(() =>
   padding: 8px 0;
 }
 
-// 响应式适配（和学习计划页保持一致）
+// 新增AI翻译样式
+.ai-translate {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .el-textarea {
+    flex: 1;
+  }
+
+  .translate-result {
+    margin-top: 12px;
+    max-height: 150px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #606266;
+    padding: 8px;
+    background: #f5f7fa;
+    border-radius: 4px;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .translate-error {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #f56c6c;
+  }
+}
+
+// 新增AI计算机样式
+.ai-calculator {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .el-textarea {
+    flex: 1;
+  }
+
+  .calc-result {
+    margin-top: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 13px;
+    color: #606266;
+    padding: 8px;
+    background: #f5f7fa;
+    border-radius: 4px;
+    white-space: pre-line;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .calc-error {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #f56c6c;
+  }
+}
+
+// 新增AI诗词创作样式
+.ai-poetry {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+
+  .poetry-result {
+    margin-top: 12px;
+    max-height: 180px;
+    overflow-y: auto;
+    font-size: 14px;
+    color: #606266;
+    padding: 12px;
+    background: #f5f7fa;
+    border-radius: 4px;
+    line-height: 1.8;
+    font-family: "SimSun", "宋体", serif;
+    text-align: center;
+    flex: 1;
+  }
+
+  .poetry-error {
+    margin-top: 12px;
+    font-size: 13px;
+    color: #f56c6c;
+  }
+}
+
+// 响应式适配（小屏幕自动改为单列）
 @media (max-width: 992px) {
   .plan-container .tools-grid {
     grid-template-columns: 1fr;
+    grid-template-rows: repeat(6, auto);
   }
 }
 
@@ -430,6 +736,12 @@ const totalMinutes = computed(() =>
 
   .tool-card {
     padding: 16px;
+  }
+
+  .ai-translate, .ai-calculator, .ai-poetry {
+    .el-input, .el-select {
+      width: 100% !important;
+    }
   }
 }
 </style>

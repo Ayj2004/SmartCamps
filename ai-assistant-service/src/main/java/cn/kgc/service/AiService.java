@@ -3,6 +3,8 @@ package cn.kgc.service;
 import cn.kgc.dto.QuestionRequest;
 import cn.kgc.dto.StudyPlan;
 
+import java.util.List;
+
 /**
  * ai业务场景
  * @author XiaoMo
@@ -33,12 +35,30 @@ public interface AiService {
      * @param interests 学生的兴趣或学习方向描述，例如“Java 后端开发”“人工智能与大数据分析”等
      * @return 推荐课程名称列表
      */
-    public java.util.List<String> recommendCourses(String interests);
+    List<String> recommendCourses(String interests);
+
     /**
-     * 学习路线图
-     * @param studentId
-     * @return
+     * AI翻译
+     * @param content 待翻译内容
+     * @param targetLang 目标语言
+     * @return 翻译结果
      */
+    String aiTranslate(String content, String targetLang);
+
+    /**
+     * AI计算机
+     * @param problem 计算问题
+     * @return 解题结果
+     */
+    String aiCalculator(String problem);
+
+    /**
+     * AI诗词创作
+     * @param theme 主题
+     * @param type 诗词类型
+     * @return 创作结果
+     */
+    String aiPoetry(String theme, String type);
 
     /**
      * 推荐课程

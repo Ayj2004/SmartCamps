@@ -42,12 +42,38 @@ public class AiController {
     }
 
     /**
-     * 生成学习图像
+     * AI翻译接口
+     * @param content 待翻译内容
+     * @param targetLang 目标语言（zh/en/jp/ko等）
+     * @return 翻译结果
      */
-    @PostMapping("/generate-image")
-    public String generateLearningImage(@RequestParam("theme") String theme) {
-        // 实现图像生成逻辑
-        return "图像生成成功：" + theme;
+    @GetMapping("translate")
+    public String aiTranslate(@RequestParam("content") String content,
+                              @RequestParam("targetLang") String targetLang) {
+        return aiService.aiTranslate(content, targetLang);
+    }
+
+    /**
+     * AI计算机接口（解决数学/编程问题）
+     * @param problem 计算问题描述
+     * @return 计算结果+解题思路
+     */
+    @PostMapping("calculator")
+    public String aiCalculator(@RequestBody Map<String, String> request) {
+        String problem = request.get("problem");
+        return aiService.aiCalculator(problem);
+    }
+
+    /**
+     * AI诗词创作接口
+     * @param theme 诗词主题
+     * @param type 诗词类型（五言绝句/七言律诗/现代诗等）
+     * @return 创作的诗词
+     */
+    @GetMapping("poetry")
+    public String aiPoetry(@RequestParam("theme") String theme,
+                           @RequestParam("type") String type) {
+        return aiService.aiPoetry(theme, type);
     }
 
     /**

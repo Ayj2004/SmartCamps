@@ -219,4 +219,119 @@ public class AiServiceImpl implements AiService {
                 
                 """, request.getStudentId(), request.getQuestion());
     }
+
+    /**
+     * AI翻译实现
+     */
+    @Override
+    public String aiTranslate(String content, String targetLang) {
+        if (ObjectUtil.isNull(chatClient)) {
+            return getMockTranslateResponse(content, targetLang);
+        }
+        try {
+            String prompt = String.format("""
+                    请将以下内容翻译成%s：
+                    %s
+                    要求：翻译准确、语句通顺，保留原义。
+                    """, targetLang, content);
+            return chatClient.prompt()
+                    .user(u -> u.text(prompt))
+                    .options(openAiChatOptions)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("AI翻译异常：" + e.getMessage());
+            return getMockTranslateResponse(content, targetLang);
+        }
+    }
+
+    /**
+     * AI计算机实现
+     */
+    @Override
+    public String aiCalculator(String problem) {
+        if (ObjectUtil.isNull(chatClient)) {
+            return getMockCalculatorResponse(problem);
+        }
+        try {
+            String prompt = String.format("""
+                    请解决以下数学/编程问题：
+                    %s
+                    要求：
+                    1. 给出详细解题步骤
+                    2. 最终结果清晰标注
+                    3. 语言通俗易懂
+                    """, problem);
+            return chatClient.prompt()
+                    .user(u -> u.text(prompt))
+                    .options(openAiChatOptions)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("AI计算机异常：" + e.getMessage());
+            return getMockCalculatorResponse(problem);
+        }
+    }
+
+    /**
+     * AI诗词创作实现
+     */
+    @Override
+    public String aiPoetry(String theme, String type) {
+        if (ObjectUtil.isNull(chatClient)) {
+            return getMockPoetryResponse(theme, type);
+        }
+        try {
+            String prompt = String.format("""
+                    请以“%s”为主题创作一首%s，要求：
+                    1. 符合对应诗词体裁的格式要求
+                    2. 意境优美，语句通顺
+                    3. 原创性强，避免抄袭
+                    """, theme, type);
+            return chatClient.prompt()
+                    .user(u -> u.text(prompt))
+                    .options(openAiChatOptions)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            System.out.println("AI诗词创作异常：" + e.getMessage());
+            return getMockPoetryResponse(theme, type);
+        }
+    }
+
+    // 翻译模拟响应
+    private String getMockTranslateResponse(String content, String targetLang) {
+        if ("en".equals(targetLang) || "英语".equals(targetLang)) {
+            return "[模拟翻译] " + content + " -> Mock translation of '" + content + "'";
+        } else if ("jp".equals(targetLang) || "日语".equals(targetLang)) {
+            return "[模拟翻译] " + content + " -> 「" + content + "」の模擬翻訳";
+        } else {
+            return "[模拟翻译] " + content + " -> 目标语言[" + targetLang + "]模拟翻译结果";
+        }
+    }
+
+    // 计算机模拟响应
+    private String getMockCalculatorResponse(String problem) {
+        return String.format("""
+                【模拟解题】%s
+                1. 解题思路：根据基础数学/编程逻辑分析问题
+                2. 解题步骤：
+                   - 步骤1：明确问题核心需求
+                   - 步骤2：梳理解题所需公式/语法
+                   - 步骤3：逐步推导计算
+                3. 最终结果：模拟计算结果（请使用真实AI服务获取准确答案）
+                """, problem);
+    }
+
+    // 诗词创作模拟响应
+    private String getMockPoetryResponse(String theme, String type) {
+        return String.format("""
+                【模拟%s·%s】
+                （因AI服务暂不可用，展示模拟诗词）
+                云卷云舒映%s，
+                风来风去意悠然。
+                浮生若梦皆成景，
+                一笔挥毫赋锦篇。
+                """, type, theme, theme);
+    }
 }
