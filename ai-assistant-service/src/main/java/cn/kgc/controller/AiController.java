@@ -55,7 +55,6 @@ public class AiController {
 
     /**
      * AI计算机接口（解决数学/编程问题）
-     * @param problem 计算问题描述
      * @return 计算结果+解题思路
      */
     @PostMapping("calculator")

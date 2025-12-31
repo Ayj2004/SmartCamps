@@ -45,7 +45,7 @@ public class CourseController {
      * @return 课程列表
      */
     @GetMapping("/major/{majorName}")
-    public List<String> getCoursenameByMajor(@PathVariable String majorName) {
+    public List<String> getCoursenameByMajor(@PathVariable("majorName") String majorName) {
         return courseService.getCoursenameByMajor(majorName);
     }
 }
