@@ -168,9 +168,12 @@
             >
               解题计算
             </el-button>
-            <div v-if="calcResult" class="calc-result">
-              {{ calcResult }}
-            </div>
+            <div
+              v-if="calcResult"
+              class="calc-result markdown-body"
+              v-html="calcResultHtml"
+            />
+
             <div v-if="calcError" class="calc-error">
               {{ calcError }}
             </div>
@@ -220,10 +223,17 @@
 </template>
 
 <script setup>
-import { ref, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { Tools } from '@element-plus/icons-vue'
 import axios from 'axios'
+import { marked } from 'marked'
+import { ref, computed, onBeforeUnmount, watch } from 'vue'
+
+
+// 清单
+const TASKS_STORAGE_KEY = 'study_tasks'
+const STUDY_LOGS_STORAGE_KEY = 'study_logs'
+
 
 // 初始化路由
 const router = useRouter()
@@ -289,11 +299,22 @@ onBeforeUnmount(() => {
 })
 
 // 学习任务清单逻辑
-const tasks = ref([
-  { id: 1, title: '预习明天的专业课', done: false },
-  { id: 2, title: '整理今天的课堂笔记', done: false }
-])
+const tasks = ref(
+  JSON.parse(localStorage.getItem(TASKS_STORAGE_KEY)) || [
+    { id: 1, title: '预习明天的专业课', done: false },
+    { id: 2, title: '整理今天的课堂笔记', done: false }
+  ]
+)
 const newTask = ref('')
+watch(
+  tasks,
+  (newTasks) => {
+    localStorage.setItem(TASKS_STORAGE_KEY, JSON.stringify(newTasks))
+  },
+  { deep: true }
+)
+
+
 
 const addTask = () => {
   const title = newTask.value.trim()
@@ -311,9 +332,20 @@ const removeTask = (id) => {
 }
 
 // 学习时长记录逻辑
-const studyLogs = ref([])
+const studyLogs = ref(
+  JSON.parse(localStorage.getItem(STUDY_LOGS_STORAGE_KEY)) || []
+)
+
 const logSubject = ref('')
 const logMinutes = ref(null)
+
+watch(
+  studyLogs,
+  (newLogs) => {
+    localStorage.setItem(STUDY_LOGS_STORAGE_KEY, JSON.stringify(newLogs))
+  },
+  { deep: true }
+)
 
 const addStudyLog = () => {
   const subject = logSubject.value.trim()
@@ -363,6 +395,13 @@ const calcProblem = ref('')
 const calcResult = ref('')
 const calcError = ref('')
 const calcLoading = ref(false)
+
+const calcResultHtml = computed(() => {
+  return calcResult.value
+    ? marked.parse(calcResult.value)
+    : ''
+})
+
 
 const handleCalculate = async () => {
   if (!calcProblem.value.trim()) {
@@ -677,7 +716,7 @@ const handleCreatePoetry = async () => {
     padding: 8px;
     background: #f5f7fa;
     border-radius: 4px;
-    white-space: pre-line;
+    //white-space: pre-line;
     line-height: 1.6;
     flex: 1;
   }
